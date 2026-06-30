@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Asset Forge — BLXCKROZE</title>
+<style>
+:root {
+  --bg: #08070c;
+  --s1: #110f18;
+  --s2: #1a1722;
+  --s3: #242030;
+  --border: #2e2a3d;
+  --accent: #e8542e;
+  --accent2: #ff7a4d;
+  --gold: #d4a843;
+  --glow: rgba(232,84,46,0.15);
+  --green: #10b981;
+  --red: #ef4444;
+  --text: #f2ede4;
+  --muted: #8d87a0;
+  --font: 'Segoe UI', system-ui, sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--font); min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+.topbar { background: var(--s1); border-bottom: 1px solid var(--border); padding: 0 20px; height: 52px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.logo { font-size: 14px; font-weight: 700; color: var(--accent2); letter-spacing: 0.08em; text-transform: uppercase; }
+.logo span { color: var(--gold); }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.key-status { font-size: 11px; padding: 4px 12px; border-radius: 20px; border: 1px solid var(--border); cursor: pointer; }
+.key-status.ok { color: var(--green); border-color: var(--green); }
+.key-status.warn { color: var(--gold); border-color: var(--gold); }
+.badge { font-size: 11px; background: var(--glow); border: 1px solid var(--accent); color: var(--accent2); padding: 4px 12px; border-radius: 20px; }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 500; display: none; align-items: center; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal { background: var(--s1); border: 1px solid var(--border); border-radius: 14px; padding: 28px; width: 400px; }
+.modal h3 { font-size: 16px; color: var(--accent2); margin-bottom: 8px; }
+.modal p { font-size: 12px; color: var(--muted); margin-bottom: 18px; line-height: 1.6; }
+.flabel { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; display: block; }
+.kwrap { position: relative; margin-bottom: 14px; }
+.kwrap input { width: 100%; background: var(--s2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; padding: 10px 36px 10px 12px; font-family: monospace; }
+.eyebtn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; }
+
+.btn { background: var(--accent); border: none; color: white; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; font-family: var(--font); }
+.btn:hover:not(:disabled) { background: #c9431f; }
+.btn.full { width: 100%; }
+.btn.ghost { background: var(--s2); color: var(--muted); border: 1px solid var(--border); }
+.btn.ghost:hover { color: var(--text); }
+.btn.gold { background: var(--gold); color: #1a1410; }
+.btn.gold:hover { background: #c29639; }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn.sm { padding: 7px 14px; font-size: 12px; }
+
+.main { display: grid; grid-template-columns: 340px 1fr 300px; flex: 1; overflow: hidden; }
+
+.left { background: var(--s1); border-right: 1px solid var(--border); overflow-y: auto; padding: 18px; }
+.section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin: 18px 0 10px; }
+.section-title:first-child { margin-top: 0; }
+
+.mode-tabs { display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 16px; }
+.mode-tab { flex: 1; padding: 9px; background: none; border: none; color: var(--muted); font-size: 12px; cursor: pointer; font-family: var(--font); }
+.mode-tab.active { background: var(--accent); color: white; font-weight: 600; }
+
+.category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.cat-btn { background: var(--s2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 8px; text-align: center; cursor: pointer; transition: all 0.15s; }
+.cat-btn.active { border-color: var(--accent); background: var(--glow); }
+.cat-btn:hover:not(.active) { border-color: var(--muted); }
+.cat-icon { font-size: 22px; margin-bottom: 4px; }
+.cat-label { font-size: 11px; color: var(--muted); }
+.cat-btn.active .cat-label { color: var(--accent2); }
+
+.preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+.preset-btn { background: var(--s2); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 12px; color: var(--text); cursor: pointer; text-align: left; }
+.preset-btn:hover { border-color: var(--accent); }
+.preset-btn.active { border-color: var(--accent); background: var(--glow); color: var(--accent2); }
+
+.field { margin-bottom: 14px; }
+input[type=text], input[type=range], textarea, select { width: 100%; background: var(--s2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 13px; padding: 9px 12px; }
+textarea { resize: vertical; min-height: 70px; }
+input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); }
+select option { background: var(--s2); }
+
+.color-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.color-swatch { width: 32px; height: 32px; border-radius: 6px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; }
+.color-swatch.selected { border-color: var(--accent); }
+.color-picker-input { width: 32px; height: 32px; border: none; border-radius: 6px; cursor: pointer; background: none; padding: 0; }
+
+.slider-row { margin-bottom: 14px; }
+.slider-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.slider-val { color: var(--accent2); font-weight: 600; }
+
+.material-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-bottom: 16px; }
+.mat-btn { background: var(--s2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 4px; font-size: 10px; color: var(--muted); cursor: pointer; text-align: center; }
+.mat-btn.active { border-color: var(--accent); color: var(--accent2); background: var(--glow); }
+
+.center { display: flex; flex-direction: column; background: radial-gradient(ellipse at center, #15121c 0%, #08070c 100%); }
+.viewport-bar { background: var(--s1); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.viewport-title { font-size: 12px; color: var(--muted); }
+.viewport-actions { display: flex; gap: 8px; }
+#viewport { flex: 1; position: relative; }
+#three-canvas { width: 100%; height: 100%; display: block; cursor: grab; }
+#three-canvas:active { cursor: grabbing; }
+
+.viewport-empty { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); pointer-events: none; }
+.viewport-empty .icon { font-size: 40px; opacity: 0.3; }
+
+.gen-status { position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--s1); border: 1px solid var(--accent); border-radius: 20px; padding: 8px 18px; font-size: 12px; color: var(--accent2); display: none; align-items: center; gap: 8px; }
+.gen-status.show { display: flex; }
+.spinner { width: 12px; height: 12px; border: 2px solid rgba(232,84,46,0.3); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.right { background: var(--s1); border-left: 1px solid var(--border); overflow-y: auto; padding: 18px; display: flex; flex-direction: column; }
+
+.coin-row { display: flex; align-items: center; justify-content: space-between; background: var(--s2); border: 1px solid var(--gold); border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; }
+.coin-label { font-size: 11px; color: var(--muted); }
+.coin-val { font-size: 16px; color: var(--gold); font-weight: 700; }
+
+.naming-field { margin-bottom: 14px; }
+
+.export-section { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--border); }
+.export-info { font-size: 11px; color: var(--muted); line-height: 1.6; margin-bottom: 12px; }
+.export-info b { color: var(--text); }
+
+.status-bar { margin-top: 10px; padding: 8px 12px; border-radius: 6px; font-size: 11px; display: none; align-items: center; gap: 6px; line-height: 1.5; }
+.status-bar.info { display: flex; background: var(--glow); border: 1px solid var(--accent); color: var(--accent2); }
+.status-bar.error { display: flex; background: rgba(239,68,68,0.1); border: 1px solid var(--red); color: #fca5a5; }
+.status-bar.success { display: flex; background: rgba(16,185,129,0.1); border: 1px solid var(--green); color: #6ee7b7; }
+
+.gallery-strip { display: flex; gap: 8px; padding: 12px 16px; background: var(--s1); border-top: 1px solid var(--border); overflow-x: auto; flex-shrink: 0; }
+.gallery-item { width: 60px; height: 60px; background: var(--s2); border: 1px solid var(--border); border-radius: 8px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.gallery-item:hover { border-color: var(--accent); }
+.gallery-item.active { border-color: var(--accent); }
+
+@media (max-width: 1000px) {
+  .main { grid-template-columns: 1fr; }
+  .left, .right { border: none; border-bottom: 1px solid var(--border); max-height: 40vh; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">BLXCKROZE <span>/ Asset Forge</span></div>
+  <div class="topbar-right">
+    <div class="key-status warn" id="keyStatus" onclick="openKeys()">⚠ Set API Key</div>
+    <div class="badge">3D Generator</div>
+  </div>
+</div>
+
+<div class="modal-bg" id="keyModal">
+  <div class="modal">
+    <h3>🔑 Groq API Key</h3>
+    <p>Used for AI-assisted design generation. Saved locally in your browser only.</p>
+    <label class="flabel">Groq API Key</label>
+    <div class="kwrap">
+      <input type="password" id="groqKey" placeholder="gsk_..." />
+      <button class="eyebtn" onclick="toggleEye('groqKey',this)">👁</button>
+    </div>
+    <button class="btn full" onclick="saveKey()">Save Key</button>
+    <button class="btn ghost full" style="margin-top:8px" onclick="closeKeys()">Close</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <div class="left">
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="switchMode('preset',this)">🎛 Preset Build</button>
+      <button class="mode-tab" onclick="switchMode('ai',this)">✦ AI Generate</button>
+    </div>
+
+    <div id="preset-controls">
+      <div class="section-title">Category</div>
+      <div class="category-grid">
+        <div class="cat-btn active" data-cat="clothing" onclick="selectCategory('clothing',this)">
+          <div class="cat-icon">👕</div><div class="cat-label">Clothing</div>
+        </div>
+        <div class="cat-btn" data-cat="vehicle" onclick="selectCategory('vehicle',this)">
+          <div class="cat-icon">🚗</div><div class="cat-label">Vehicle</div>
+        </div>
+        <div class="cat-btn" data-cat="furniture" onclick="selectCategory('furniture',this)">
+          <div class="cat-icon">🪑</div><div class="cat-label">Furniture</div>
+        </div>
+        <div class="cat-btn" data-cat="accessory" onclick="selectCategory('accessory',this)">
+          <div class="cat-icon">💎</div><div class="cat-label">Accessory</div>
+        </div>
+      </div>
+
+      <div class="section-title">Style</div>
+      <div class="preset-grid" id="presetGrid"></div>
+
+      <div class="section-title">Color</div>
+      <div class="color-row" id="colorRow"></div>
+
+      <div class="section-title">Proportions</div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Scale</span><span class="slider-val" id="scaleVal">1.0x</span></div>
+        <input type="range" id="scaleSlider" min="0.5" max="2" step="0.05" value="1" oninput="updateScale(this.value)" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Width</span><span class="slider-val" id="widthVal">1.0x</span></div>
+        <input type="range" id="widthSlider" min="0.5" max="2" step="0.05" value="1" oninput="updateWidth(this.value)" />
+      </div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Detail / Roughness</span><span class="slider-val" id="roughVal">50%</span></div>
+        <input type="range" id="roughSlider" min="0" max="100" step="5" value="50" oninput="updateRough(this.value)" />
+      </div>
+
+      <div class="section-title">Material</div>
+      <div class="material-grid" id="materialGrid"></div>
+
+      <button class="btn full" onclick="buildPreset()">🔨 Build Asset</button>
+    </div>
+
+    <div id="ai-controls" style="display:none">
+      <div class="section-title">Category</div>
+      <select id="aiCategory">
+        <option value="clothing">Clothing</option>
+        <option value="vehicle">Vehicle</option>
+        <option value="furniture">Furniture</option>
+        <option value="accessory">Accessory</option>
+      </select>
+
+      <div class="section-title">Describe the asset</div>
+      <textarea id="aiPrompt" placeholder="e.g. A battle-worn leather jacket with metal spikes on the shoulders, dark brown with gold trim, Beowulf-era warrior aesthetic..."></textarea>
+
+      <div class="section-title">Color palette</div>
+      <input type="text" id="aiColors" placeholder="e.g. dark brown, gold, rust orange" style="margin-bottom:16px" />
+
+      <button class="btn full" onclick="generateFromAI()" id="aiGenBtn">✦ Generate with AI</button>
+      <div class="status-bar" id="aiStatus"><div class="spinner"></div><span id="aiStatusText"></span></div>
+    </div>
+  </div>
+
+  <div class="center">
+    <div class="viewport-bar">
+      <span class="viewport-title" id="viewportTitle">No asset loaded</span>
+      <div class="viewport-actions">
+        <button class="btn ghost sm" onclick="resetCamera()">⟲ Reset View</button>
+        <button class="btn ghost sm" onclick="toggleWireframe()">◫ Wireframe</button>
+      </div>
+    </div>
+    <div id="viewport">
+      <div class="viewport-empty" id="viewportEmpty">
+        <div class="icon">⬡</div>
+        <p style="font-size:13px">Build a preset or generate with AI to see your asset here</p>
+      </div>
+      <canvas id="three-canvas" style="display:none"></canvas>
+      <div class="gen-status" id="genStatus"><div class="spinner"></div><span id="genStatusText"></span></div>
+    </div>
+    <div class="gallery-strip" id="galleryStrip"></div>
+  </div>
+
+  <div class="right">
+    <div class="coin-row">
+      <div>
+        <div class="coin-label">Currency</div>
+        <div class="coin-val">blxckbillz</div>
+      </div>
+      <div style="text-align:right">
+        <div class="coin-label">Suggested price</div>
+        <div class="coin-val" id="priceSuggest">—</div>
+      </div>
+    </div>
+
+    <div class="naming-field">
+      <label class="flabel">Asset name</label>
+      <input type="text" id="assetName" placeholder="e.g. Warlord's Battle Cloak" />
+    </div>
+    <div class="naming-field">
+      <label class="flabel">Slot type</label>
+      <select id="slotType">
+        <option value="outfit">Outfit / Body</option>
+        <option value="head">Head / Hat</option>
+        <option value="accessory">Accessory</option>
+        <option value="vehicle">Vehicle</option>
+        <option value="furniture">Furniture / Decor</option>
+      </select>
+    </div>
+    <div class="naming-field">
+      <label class="flabel">Rarity</label>
+      <select id="rarity" onchange="updatePriceSuggest()">
+        <option value="common">Common</option>
+        <option value="rare">Rare</option>
+        <option value="epic">Epic</option>
+        <option value="legendary">Legendary</option>
+      </select>
+    </div>
+
+    <div class="export-section">
+      <div class="export-info">Exports as <b>.GLB</b> — ready to wear, equip, or place in the BLXCKROZE mall. Compatible with most 3D engines and avatar systems.</div>
+      <button class="btn gold full" onclick="exportGLB()" id="exportBtn" disabled>⬇ Export as GLB</button>
+      <div class="status-bar" id="exportStatus"><div class="spinner"></div><span id="exportStatusText"></span></div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/js/exporters/GLTFExporter.js"></script>
+<script>
+let scene, camera, renderer, currentGroup;
+let currentCategory = 'clothing';
+let currentPreset = 'jacket';
+let currentColor = '#8b5a2b';
+let currentMaterial = 'leather';
+let scaleVal = 1, widthVal = 1, roughVal = 0.5;
+let wireframeOn = false;
+let gallery = [];
+
+const PRESETS = {
+  clothing: [
+    { id: 'jacket', name: 'Battle Jacket', icon: '🧥' },
+    { id: 'cloak', name: 'Long Cloak', icon: '🧣' },
+    { id: 'armor', name: 'Chest Armor', icon: '🛡' },
+    { id: 'tunic', name: 'Warrior Tunic', icon: '👘' }
+  ],
+  vehicle: [
+    { id: 'car', name: 'Hover Car', icon: '🚗' },
+    { id: 'bike', name: 'War Bike', icon: '🏍' },
+    { id: 'cart', name: 'Battle Cart', icon: '🛒' },
+    { id: 'sled', name: 'Sky Sled', icon: '🛷' }
+  ],
+  furniture: [
+    { id: 'throne', name: 'Throne Chair', icon: '🪑' },
+    { id: 'table', name: 'Round Table', icon: '🛋' },
+    { id: 'chest', name: 'Treasure Chest', icon: '📦' },
+    { id: 'shelf', name: 'Display Shelf', icon: '🗄' }
+  ],
+  accessory: [
+    { id: 'helmet', name: 'War Helmet', icon: '⛑' },
+    { id: 'amulet', name: 'Power Amulet', icon: '📿' },
+    { id: 'shield', name: 'Round Shield', icon: '🛡' },
+    { id: 'crown', name: 'Iron Crown', icon: '👑' }
+  ]
+};
+
+const COLORS = ['#8b5a2b','#3a3a3a','#d4a843','#8b1a1a','#2d4a3a','#5a4a6e','#c0c0c0','#1a1a1a'];
+const MATERIALS = [
+  { id: 'leather', name: 'Leather' },
+  { id: 'metal', name: 'Metal' },
+  { id: 'cloth', name: 'Cloth' },
+  { id: 'wood', name: 'Wood' },
+  { id: 'stone', name: 'Stone' },
+  { id: 'gold', name: 'Gold' }
+];
+
+function saveKey() {
+  localStorage.setItem('forge_groq', document.getElementById('groqKey').value.trim());
+  updateKeyStatus();
+  closeKeys();
+}
+function loadKey() {
+  const k = localStorage.getItem('forge_groq');
+  if (k) document.getElementById('groqKey').value = k;
+  updateKeyStatus();
+}
+function updateKeyStatus() {
+  const k = localStorage.getItem('forge_groq');
+  const el = document.getElementById('keyStatus');
+  if (k) { el.textContent = '✓ Key saved'; el.className = 'key-status ok'; }
+  else { el.textContent = '⚠ Set API Key'; el.className = 'key-status warn'; }
+}
+function openKeys() { document.getElementById('keyModal').classList.add('open'); }
+function closeKeys() { document.getElementById('keyModal').classList.remove('open'); }
+function toggleEye(id, btn) {
+  const i = document.getElementById(id);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  btn.textContent = i.type === 'password' ? '👁' : '🙈';
+}
+
+function initThree() {
+  const canvas = document.getElementById('three-canvas');
+  const viewport = document.getElementById('viewport');
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x08070c);
+
+  camera = new THREE.PerspectiveCamera(45, viewport.clientWidth / viewport.clientHeight, 0.1, 1000);
+  camera.position.set(2.5, 2, 3.5);
+  camera.lookAt(0, 0, 0);
+
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  const ambient = new THREE.AmbientLight(0x4a3a2a, 0.6);
+  scene.add(ambient);
+  const key = new THREE.DirectionalLight(0xffaa66, 1.2);
+  key.position.set(3, 5, 2);
+  scene.add(key);
+  const rim = new THREE.DirectionalLight(0xe8542e, 0.4);
+  rim.position.set(-3, 2, -2);
+  scene.add(rim);
+
+  const grid = new THREE.GridHelper(6, 12, 0x2e2a3d, 0x1a1722);
+  grid.position.y = -1;
+  scene.add(grid);
+
+  animate();
+
+  let isDragging = false, prevX = 0, prevY = 0;
+  let rotX = 0.3, rotY = 0.5;
+  canvas.addEventListener('mousedown', e => { isDragging = true; prevX = e.clientX; prevY = e.clientY; });
+  window.addEventListener('mouseup', () => isDragging = false);
+  window.addEventListener('mousemove', e => {
+    if (!isDragging || !currentGroup) return;
+    rotY += (e.clientX - prevX) * 0.01;
+    rotX += (e.clientY - prevY) * 0.01;
+    currentGroup.rotation.y = rotY;
+    currentGroup.rotation.x = Math.max(-1, Math.min(1, rotX));
+    prevX = e.clientX; prevY = e.clientY;
+  });
+  canvas.addEventListener('touchstart', e => { isDragging = true; prevX = e.touches[0].clientX; prevY = e.touches[0].clientY; });
+  canvas.addEventListener('touchend', () => isDragging = false);
+  canvas.addEventListener('touchmove', e => {
+    if (!isDragging || !currentGroup) return;
+    rotY += (e.touches[0].clientX - prevX) * 0.01;
+    rotX += (e.touches[0].clientY - prevY) * 0.01;
+    currentGroup.rotation.y = rotY;
+    currentGroup.rotation.x = Math.max(-1, Math.min(1, rotX));
+    prevX = e.touches[0].clientX; prevY = e.touches[0].clientY;
+  }, { passive: true });
+
+  window.addEventListener('resize', () => {
+    camera.aspect = viewport.clientWidth / viewport.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+  });
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (currentGroup) currentGroup.rotation.y += 0.002;
+  renderer.render(scene, camera);
+}
+
+function resetCamera() {
+  camera.position.set(2.5, 2, 3.5);
+  camera.lookAt(0, 0, 0);
+  if (currentGroup) { currentGroup.rotation.set(0.3, 0.5, 0); }
+}
+
+function toggleWireframe() {
+  wireframeOn = !wireframeOn;
+  if (!currentGroup) return;
+  currentGroup.traverse(obj => { if (obj.isMesh) obj.material.wireframe = wireframeOn; });
+}
+
+function buildGeometry(category, preset, scale, width, rough, color, material) {
+  const group = new THREE.Group();
+  const mat = getMaterial(color, material, rough);
+
+  if (category === 'clothing') {
+    if (preset === 'jacket' || preset === 'tunic' || preset === 'armor') {
+      const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.45*width, 0.55*width, 1.1*scale, 12), mat);
+      torso.position.y = 0.2;
+      group.add(torso);
+      const shL = new THREE.Mesh(new THREE.SphereGeometry(0.22*width, 8, 8), mat);
+      shL.position.set(-0.55*width, 0.65, 0);
+      group.add(shL);
+      const shR = shL.clone(); shR.position.x = 0.55*width;
+      group.add(shR);
+      const slL = new THREE.Mesh(new THREE.CylinderGeometry(0.15*width, 0.18*width, 0.8*scale, 8), mat);
+      slL.position.set(-0.6*width, 0.1, 0);
+      slL.rotation.z = 0.15;
+      group.add(slL);
+      const slR = slL.clone(); slR.position.x = 0.6*width; slR.rotation.z = -0.15;
+      group.add(slR);
+    } else if (preset === 'cloak') {
+      const cloak = new THREE.Mesh(new THREE.ConeGeometry(0.7*width, 1.6*scale, 12, 1, true), mat);
+      group.add(cloak);
+      const collar = new THREE.Mesh(new THREE.TorusGeometry(0.35*width, 0.08, 8, 16), mat);
+      collar.position.y = 0.75;
+      collar.rotation.x = Math.PI/2;
+      group.add(collar);
+    }
+  } else if (category === 'vehicle') {
+    const bodyMat = getMaterial(color, material, rough);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(2*scale*width, 0.5*scale, 1*scale), bodyMat);
+    body.position.y = 0.3;
+    group.add(body);
+    const cabin = new THREE.Mesh(new THREE.BoxGeometry(1*scale*width, 0.4*scale, 0.9*scale), bodyMat);
+    cabin.position.set(-0.2*scale, 0.7, 0);
+    group.add(cabin);
+    if (preset === 'car' || preset === 'cart') {
+      const wheelGeo = new THREE.CylinderGeometry(0.25*scale, 0.25*scale, 0.2, 12);
+      const wheelMat = getMaterial('#1a1a1a', 'metal', 0.7);
+      [[-0.7,-0.2,0.5],[0.7,-0.2,0.5],[-0.7,-0.2,-0.5],[0.7,-0.2,-0.5]].forEach(pos => {
+        const w = new THREE.Mesh(wheelGeo, wheelMat);
+        w.rotation.z = Math.PI/2;
+        w.position.set(pos[0]*scale*width, pos[1], pos[2]*scale);
+        group.add(w);
+      });
+    } else {
+      const hover = new THREE.Mesh(new THREE.CylinderGeometry(0.9*scale, 0.7*scale, 0.1, 16), new THREE.MeshStandardMaterial({ color: 0xe8542e, emissive: 0xe8542e, emissiveIntensity: 0.5, transparent: true, opacity: 0.5 }));
+      hover.position.y = -0.1;
+      group.add(hover);
+    }
+  } else if (category === 'furniture') {
+    const mat2 = getMaterial(color, material, rough);
+    if (preset === 'throne') {
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.8*width*scale, 0.15, 0.8*scale), mat2);
+      group.add(seat);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.8*width*scale, 1.4*scale, 0.15), mat2);
+      back.position.set(0, 0.7*scale, -0.35*scale);
+      group.add(back);
+      [[-0.35,-0.4],[0.35,-0.4]].forEach(p => {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.4, 0.7*scale), mat2);
+        arm.position.set(p[0]*width*scale, 0.2, 0);
+        group.add(arm);
+      });
+      [[-0.3,-0.3],[0.3,-0.3],[-0.3,0.3],[0.3,0.3]].forEach(p => {
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.05,0.5,8), mat2);
+        leg.position.set(p[0]*width*scale, -0.4, p[1]*scale);
+        group.add(leg);
+      });
+    } else if (preset === 'chest') {
+      const box = new THREE.Mesh(new THREE.BoxGeometry(1*scale*width, 0.6*scale, 0.6*scale), mat2);
+      group.add(box);
+      const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.5*scale*width,0.5*scale*width,0.6*scale,8,1,false,0,Math.PI), mat2);
+      lid.rotation.z = Math.PI/2;
+      lid.position.y = 0.3*scale;
+      group.add(lid);
+    } else {
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.7*scale*width, 0.7*scale*width, 0.08, 16), mat2);
+      top.position.y = 0.3;
+      group.add(top);
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.06,0.6,8), mat2);
+      leg.position.y = -0.1;
+      group.add(leg);
+    }
+  } else if (category === 'accessory') {
+    const mat3 = getMaterial(color, material, rough);
+    if (preset === 'helmet') {
+      const dome = new THREE.Mesh(new THREE.SphereGeometry(0.4*scale*width, 12, 8, 0, Math.PI*2, 0, Math.PI*0.6), mat3);
+      group.add(dome);
+      const horn1 = new THREE.Mesh(new THREE.ConeGeometry(0.05, 0.4*scale, 8), mat3);
+      horn1.position.set(-0.3*width, 0.15, 0); horn1.rotation.z = 0.5;
+      group.add(horn1);
+      const horn2 = horn1.clone(); horn2.position.x = 0.3*width; horn2.rotation.z = -0.5;
+      group.add(horn2);
+    } else if (preset === 'crown') {
+      const band = new THREE.Mesh(new THREE.TorusGeometry(0.35*scale*width, 0.06, 8, 16), mat3);
+      group.add(band);
+      for (let i = 0; i < 6; i++) {
+        const spike = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.25, 6), mat3);
+        const ang = (i/6) * Math.PI * 2;
+        spike.position.set(Math.cos(ang)*0.35*width, 0.18, Math.sin(ang)*0.35*width);
+        group.add(spike);
+      }
+    } else if (preset === 'shield') {
+      const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.5*scale*width, 0.45*scale*width, 0.08, 16), mat3);
+      shield.rotation.x = Math.PI/2;
+      group.add(shield);
+      const boss = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 8), getMaterial('#d4a843','gold',0.3));
+      boss.position.z = 0.05;
+      group.add(boss);
+    } else {
+      const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.2*scale*width), mat3);
+      group.add(gem);
+      const chain = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.02, 8, 16), getMaterial('#d4a843','gold',0.3));
+      chain.position.y = 0.3;
+      chain.rotation.x = Math.PI/2;
+      group.add(chain);
+    }
+  }
+
+  group.traverse(obj => { if (obj.isMesh) { obj.castShadow = true; obj.receiveShadow = true; } });
+  return group;
+}
+
+function getMaterial(color, materialType, roughness) {
+  const props = {
+    leather: { roughness: 0.8, metalness: 0.05 },
+    metal: { roughness: 0.3, metalness: 0.85 },
+    cloth: { roughness: 0.95, metalness: 0 },
+    wood: { roughness: 0.7, metalness: 0 },
+    stone: { roughness: 0.9, metalness: 0.1 },
+    gold: { roughness: 0.25, metalness: 0.95 }
+  };
+  const p = props[materialType] || props.leather;
+  return new THREE.MeshStandardMaterial({
+    color: new THREE.Color(color),
+    roughness: roughness !== undefined ? roughness : p.roughness,
+    metalness: p.metalness
+  });
+}
+
+function selectCategory(cat, btn) {
+  currentCategory = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPresetGrid();
+}
+
+function renderPresetGrid() {
+  const grid = document.getElementById('presetGrid');
+  grid.innerHTML = '';
+  PRESETS[currentCategory].forEach((p, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'preset-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = p.icon + ' ' + p.name;
+    btn.onclick = () => {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentPreset = p.id;
+    };
+    grid.appendChild(btn);
+  });
+  currentPreset = PRESETS[currentCategory][0].id;
+}
+
+function renderColorRow() {
+  const row = document.getElementById('colorRow');
+  row.innerHTML = '';
+  COLORS.forEach((c, i) => {
+    const sw = document.createElement('div');
+    sw.className = 'color-swatch' + (i === 0 ? ' selected' : '');
+    sw.style.background = c;
+    sw.onclick = () => {
+      document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+      currentColor = c;
+    };
+    row.appendChild(sw);
+  });
+  const customInput = document.createElement('input');
+  customInput.type = 'color';
+  customInput.className = 'color-picker-input';
+  customInput.value = '#8b5a2b';
+  customInput.oninput = (e) => {
+    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+    currentColor = e.target.value;
+  };
+  row.appendChild(customInput);
+}
+
+function renderMaterialGrid() {
+  const grid = document.getElementById('materialGrid');
+  grid.innerHTML = '';
+  MATERIALS.forEach((m, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'mat-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = m.name;
+    btn.onclick = () => {
+      document.querySelectorAll('.mat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentMaterial = m.id;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function updateScale(v) { scaleVal = parseFloat(v); document.getElementById('scaleVal').textContent = v + 'x'; }
+function updateWidth(v) { widthVal = parseFloat(v); document.getElementById('widthVal').textContent = v + 'x'; }
+function updateRough(v) { roughVal = v/100; document.getElementById('roughVal').textContent = v + '%'; }
+
+function switchMode(mode, btn) {
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('preset-controls').style.display = mode === 'preset' ? 'block' : 'none';
+  document.getElementById('ai-controls').style.display = mode === 'ai' ? 'block' : 'none';
+}
+
+function buildPreset() {
+  if (currentGroup) scene.remove(currentGroup);
+  currentGroup = buildGeometry(currentCategory, currentPreset, scaleVal, widthVal, roughVal, currentColor, currentMaterial);
+  scene.add(currentGroup);
+  showViewport();
+  const presetName = PRESETS[currentCategory].find(p => p.id === currentPreset);
+  document.getElementById('viewportTitle').textContent = presetName.name;
+  if (!document.getElementById('assetName').value) document.getElementById('assetName').value = presetName.name;
+  document.getElementById('exportBtn').disabled = false;
+  addToGallery(presetName.icon, presetName.name);
+  updatePriceSuggest();
+}
+
+function showViewport() {
+  document.getElementById('viewportEmpty').style.display = 'none';
+  document.getElementById('three-canvas').style.display = 'block';
+}
+
+function addToGallery(icon, name) {
+  gallery.push({ icon, name });
+  const strip = document.getElementById('galleryStrip');
+  const item = document.createElement('div');
+  item.className = 'gallery-item active';
+  item.textContent = icon;
+  item.title = name;
+  document.querySelectorAll('.gallery-item').forEach(g => g.classList.remove('active'));
+  strip.appendChild(item);
+}
+
+function updatePriceSuggest() {
+  const rarity = document.getElementById('rarity').value;
+  const prices = { common: '50-100', rare: '150-300', epic: '400-700', legendary: '800-1500' };
+  document.getElementById('priceSuggest').textContent = prices[rarity] + ' bb';
+}
+
+async function generateFromAI() {
+  const key = localStorage.getItem('forge_groq');
+  if (!key) { openKeys(); return; }
+
+  const category = document.getElementById('aiCategory').value;
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  const colors = document.getElementById('aiColors').value.trim();
+  if (!prompt) return;
+
+  const btn = document.getElementById('aiGenBtn');
+  btn.disabled = true;
+  const st = document.getElementById('aiStatus');
+  st.className = 'status-bar info';
+  document.getElementById('aiStatusText').textContent = 'AI analyzing your design...';
+
+  try {
+    const raw = await callGroq(key,
+      'You are a 3D asset design assistant for a Beowulf-themed digital mall called BLXCKROZE. Convert text descriptions into structured geometry parameters. Output ONLY valid JSON.',
+      `Category: ${category}
+Description: ${prompt}
+Color preferences: ${colors || 'designer choice, fitting Beowulf/Norse warrior aesthetic'}
+
+Pick the best matching preset shape and parameters. Available presets for ${category}: ${PRESETS[category].map(p=>p.id).join(', ')}
+Available materials: leather, metal, cloth, wood, stone, gold
+
+Return JSON only:
+{
+  "preset": "one of the preset ids listed above",
+  "name": "creative asset name fitting Beowulf aesthetic",
+  "color": "#hexcolor matching the description",
+  "material": "one of the material ids listed above",
+  "scale": 1.0,
+  "width": 1.0,
+  "roughness": 0.5,
+  "rarity": "common, rare, epic, or legendary based on how elaborate the description is"
+}`, 500);
+
+    const clean = raw.replace(/^```json\n?/,'').replace(/^```\n?/,'').replace(/```$/,'').trim();
+    const data = JSON.parse(clean);
+
+    currentCategory = category;
+    currentPreset = data.preset;
+    currentColor = data.color;
+    currentMaterial = data.material;
+    scaleVal = data.scale || 1;
+    widthVal = data.width || 1;
+    roughVal = data.roughness !== undefined ? data.roughness : 0.5;
+
+    if (currentGroup) scene.remove(currentGroup);
+    currentGroup = buildGeometry(currentCategory, currentPreset, scaleVal, widthVal, roughVal, currentColor, currentMaterial);
+    scene.add(currentGroup);
+    showViewport();
+
+    document.getElementById('viewportTitle').textContent = data.name;
+    document.getElementById('assetName').value = data.name;
+    document.getElementById('rarity').value = data.rarity || 'rare';
+    document.getElementById('exportBtn').disabled = false;
+    addToGallery('✦', data.name);
+    updatePriceSuggest();
+
+    st.className = 'status-bar success';
+    document.getElementById('aiStatusText').textContent = '✓ Generated! Adjust in Preset mode if needed.';
+
+  } catch(e) {
+    st.className = 'status-bar error';
+    document.getElementById('aiStatusText').textContent = 'Error: ' + e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function callGroq(key, system, user, maxTokens = 500) {
+  const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
+      temperature: 0.7, max_tokens: maxTokens
+    })
+  });
+  if (!r.ok) { const e = await r.json(); throw new Error(e.error?.message || 'Groq error'); }
+  return (await r.json()).choices[0].message.content.trim();
+}
+
+function exportGLB() {
+  if (!currentGroup) return;
+  const st = document.getElementById('exportStatus');
+  st.className = 'status-bar info';
+  document.getElementById('exportStatusText').textContent = 'Exporting GLB...';
+
+  const exporter = new THREE.GLTFExporter();
+  exporter.parse(currentGroup, (result) => {
+    const name = (document.getElementById('assetName').value || 'asset').toLowerCase().replace(/\s+/g, '-');
+    const blob = new Blob([result], { type: 'application/octet-stream' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name + '.glb';
+    a.click();
+    st.className = 'status-bar success';
+    document.getElementById('exportStatusText').textContent = '✓ Exported! Ready to upload to the mall.';
+  }, { binary: true });
+}
+
+loadKey();
+renderPresetGrid();
+renderColorRow();
+renderMaterialGrid();
+updatePriceSuggest();
+window.addEventListener('load', initThree);
+if (document.readyState === 'complete') initThree();
+</script>
+</body>
+</html>
